@@ -4,34 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Qaryz.kz</title>
-    <!-- Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #2481cc);
+            --tg-secondary: var(--tg-theme-secondary-bg-color, #f3f4f6);
+        }
+
         body {
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; /* Отключаем общий скролл для фиксации футера */
+        }
+
+        /* Контейнер со скроллом только для контента */
+        .content-scroll {
+            height: calc(100vh - 120px); /* Вычитаем высоту футера */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .btn-card {
+            background-color: var(--tg-secondary);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.15s ease;
             -webkit-tap-highlight-color: transparent;
         }
-        .btn-card {
-            background-color: var(--tg-theme-secondary-bg-color, #f3f4f6);
-            border-radius: 20px;
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-            text-align: left;
-            width: 100%;
-            padding: 20px;
-            display: block;
-            margin-bottom: 12px;
+
+        .btn-card:active {
+            transform: scale(0.98);
+            background-color: rgba(0,0,0,0.08);
         }
-        .btn-card:active { transform: scale(0.98); opacity: 0.9; }
-        
-        /* Логика языков */
+
         [data-lang]:not(.active-lang) { display: none; }
         .active-lang { display: block; }
-        
+
         .lang-active { 
             background-color: #ffffff; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
@@ -39,79 +51,82 @@
         }
     </style>
 </head>
-<body class="p-5 antialiased flex flex-col min-h-screen">
+<body class="antialiased flex flex-col h-screen">
 
-    <!-- БЛОК 1 — Header -->
-    <header class="flex justify-between items-start mb-8">
-        <div>
-            <h1 class="text-2xl font-black text-blue-600 tracking-tighter uppercase">Qaryz.kz</h1>
-            <p class="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-1">
-                <span data-lang="kz" class="active-lang">Несие мен қарызды бақылау</span>
-                <span data-lang="ru">Контроль кредитов и долгов</span>
-            </p>
-        </div>
+    <!-- ОСНОВНОЙ КОНТЕНТ (СКРОЛЛИТСЯ) -->
+    <main class="content-scroll p-5 pb-10">
         
-        <!-- Переключатель языков (KZ теперь первый) -->
-        <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold border border-black/5">
-            <button id="btn-kz" onclick="setLanguage('kz')" class="px-3 py-1 rounded-lg transition-all lang-active">KZ</button>
-            <button id="btn-ru" onclick="setLanguage('ru')" class="px-3 py-1 rounded-lg transition-all text-gray-500 ml-1">RU</button>
+        <!-- HEADER -->
+        <header class="flex justify-between items-start mb-8">
+            <div>
+                <h1 class="text-2xl font-black text-blue-600 tracking-tighter uppercase">Qaryz.kz</h1>
+                <p class="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-1">
+                    <span data-lang="kz" class="active-lang">Несие мен қарызды бақылау</span>
+                    <span data-lang="ru">Контроль кредитов и долгов</span>
+                </p>
+            </div>
+            
+            <div class="flex bg-gray-200 p-1 rounded-xl text-[11px] font-bold border border-black/5">
+                <button id="btn-kz" onclick="setLanguage('kz')" class="px-3 py-1 rounded-lg transition-all lang-active">KZ</button>
+                <button id="btn-ru" onclick="setLanguage('ru')" class="px-3 py-1 rounded-lg transition-all text-gray-500 ml-1">RU</button>
+            </div>
+        </header>
+
+        <!-- ОФФЕР -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-extrabold leading-tight mb-3">
+                <span data-lang="kz" class="active-lang">Несиелеріңізді бақылауға алыңыз</span>
+                <span data-lang="ru">Возьмите кредиты под контроль</span>
+            </h2>
+            <p class="text-[14px] leading-relaxed opacity-70">
+                <span data-lang="kz" class="active-lang">Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға және шоттар бұғатталған кезде не істеу керектігін біліңіз.</span>
+                <span data-lang="ru">Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.</span>
+            </p>
+        </section>
+
+        <!-- КНОПКИ НА ВЕСЬ ЭКРАН -->
+        <div class="space-y-4">
+            <!-- Кнопка 1 -->
+            <button onclick="navigate('reduce')" class="btn-card w-full rounded-2xl p-5 shadow-sm">
+                <div data-lang="kz" class="active-lang">
+                    <div class="text-[16px] font-bold text-blue-700 leading-tight mb-1">Несиелерімді уақытылы төлеп жүрмін — артық төлемді азайтқым келеді</div>
+                    <div class="text-[12px] opacity-60">Несиені қаншалықты үнемдеуге болатынын және оны қалай тезірек жабуға болатынын есептеңіз.</div>
+                </div>
+                <div data-lang="ru">
+                    <div class="text-[16px] font-bold text-blue-700 leading-tight mb-1">Оплачиваю кредиты вовремя — хочу уменьшить переплату</div>
+                    <div class="text-[12px] opacity-60">Рассчитайте, сколько можно сократить и как закрыть кредит быстрее.</div>
+                </div>
+            </button>
+
+            <!-- Кнопка 2 -->
+            <button onclick="navigate('delay')" class="btn-card w-full rounded-2xl p-5 shadow-sm">
+                <div data-lang="kz" class="active-lang">
+                    <div class="text-[16px] font-bold text-orange-600 leading-tight mb-1">Төлем жасауда қиындықтар бар немесе төлем кешіктірілді</div>
+                    <div class="text-[12px] opacity-60">Айыппұлдарды қалай тоқтату және банкпен келісу туралы қадамдық алгоритм.</div>
+                </div>
+                <div data-lang="ru">
+                    <div class="text-[16px] font-bold text-orange-600 leading-tight mb-1">Есть сложности с оплатой или просрочка</div>
+                    <div class="text-[12px] opacity-60">Пошаговый алгоритм, как остановить штрафы и договориться с банком.</div>
+                </div>
+            </button>
+
+            <!-- Кнопка 3 -->
+            <button onclick="navigate('blocked')" class="btn-card w-full rounded-2xl p-5 shadow-sm border-red-100">
+                <div data-lang="kz" class="active-lang">
+                    <div class="text-[16px] font-bold text-red-600 leading-tight mb-1 font-extrabold">Шоттар бұғатталды / ЖОТ жұмыс істеп жатыр</div>
+                    <div class="text-[12px] opacity-60">Шоттарға тыйым салынғанда не істеу керек және ақшаға қолжетімділікті қалай қалпына келтіруге болады.</div>
+                </div>
+                <div data-lang="ru">
+                    <div class="text-[16px] font-bold text-red-600 leading-tight mb-1 font-extrabold">Счета заблокированы / работает ЧСИ</div>
+                    <div class="text-[12px] opacity-60">Что делать при аресте счетов и как восстановить доступ к деньгам.</div>
+                </div>
+            </button>
         </div>
-    </header>
+    </main>
 
-    <!-- БЛОК 2 — Главный оффер -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-extrabold leading-tight mb-3">
-            <span data-lang="kz" class="active-lang">Несиелеріңізді бақылауға алыңыз</span>
-            <span data-lang="ru">Возьмите кредиты под контроль</span>
-        </h2>
-        <p class="text-[14px] leading-relaxed opacity-70">
-            <span data-lang="kz" class="active-lang">Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға және шоттар бұғатталған кезде не істеу керектігін біліңіз.</span>
-            <span data-lang="ru">Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.</span>
-        </p>
-    </div>
-
-    <!-- БЛОК 3 — Кнопки -->
-    <div class="flex-grow">
-        <!-- Кнопка 1 -->
-        <button class="btn-card">
-            <div data-lang="kz" class="active-lang">
-                <div class="text-[15px] font-bold text-blue-700 leading-tight mb-1">Несиелерімді уақытылы төлеп жүрмін — артық төлемді азайтқым келеді</div>
-                <div class="text-[12px] opacity-60">Несиені қаншалықты үнемдеуге болатынын және оны қалай тезірек жабуға болатынын есептеңіз.</div>
-            </div>
-            <div data-lang="ru">
-                <div class="text-[15px] font-bold text-blue-700 leading-tight mb-1">Оплачиваю кредиты вовремя — хочу уменьшить переплату</div>
-                <div class="text-[12px] opacity-60">Рассчитайте, сколько можно сократить и как закрыть кредит быстрее.</div>
-            </div>
-        </button>
-
-        <!-- Кнопка 2 -->
-        <button class="btn-card">
-            <div data-lang="kz" class="active-lang">
-                <div class="text-[15px] font-bold text-blue-700 leading-tight mb-1">Төлем жасауда қиындықтар бар немесе төлем кешіктірілді</div>
-                <div class="text-[12px] opacity-60">Айыппұлдарды қалай тоқтату және банкпен келісу туралы қадамдық алгоритм.</div>
-            </div>
-            <div data-lang="ru">
-                <div class="text-[15px] font-bold text-blue-700 leading-tight mb-1">Есть сложности с оплатой или просрочка</div>
-                <div class="text-[12px] opacity-60">Пошаговый алгоритм, как остановить штрафы и договориться с банком.</div>
-            </div>
-        </button>
-
-        <!-- Кнопка 3 -->
-        <button class="btn-card border-red-100">
-            <div data-lang="kz" class="active-lang">
-                <div class="text-[15px] font-bold text-red-600 leading-tight mb-1">Шоттар бұғатталды / ЖОТ жұмыс істеп жатыр</div>
-                <div class="text-[12px] opacity-60">Шоттарға тыйым салынғанда не істеу керек және ақшаға қолжетімділікті қалай қалпына келтіруге болады.</div>
-            </div>
-            <div data-lang="ru">
-                <div class="text-[15px] font-bold text-red-600 leading-tight mb-1">Счета заблокированы / работает ЧСИ</div>
-                <div class="text-[12px] opacity-60">Что делать при аресте счетов и как восстановить доступ к деньгам.</div>
-            </div>
-        </button>
-    </div>
-
-    <!-- БЛОК 4 — Доверие -->
-    <footer class="mt-10 py-6 border-t border-gray-100">
-        <p class="text-[10px] text-center leading-normal opacity-50 px-2 italic">
+    <!-- ФИКСИРОВАННЫЙ ФУТЕР БЕЗОПАСНОСТИ -->
+    <footer class="mt-auto bg-gray-50 border-t border-gray-200 p-4">
+        <p class="text-[10px] text-center leading-normal opacity-50 italic">
             <span data-lang="kz" class="active-lang">🔒 Біз ЖСН, телефон нөмірін, банктік карта деректерін және растау кодтарын сұрамаймыз. Барлық есептеулер анонимді түрде орындалады және банктерге немесе үшінші тұлғаларға берілмейді.</span>
             <span data-lang="ru">🔒 Мы не запрашиваем ИИН, номер телефона, данные банковских карт и коды подтверждения. Все расчёты выполняются анонимно и не передаются банкам или третьим лицам.</span>
         </p>
@@ -125,32 +140,28 @@
         function setLanguage(lang) {
             document.querySelectorAll('[data-lang]').forEach(el => {
                 el.classList.remove('active-lang');
-                if (el.getAttribute('data-lang') === lang) {
-                    el.classList.add('active-lang');
-                }
+                if (el.getAttribute('data-lang') === lang) el.classList.add('active-lang');
             });
 
             const btnRu = document.getElementById('btn-ru');
             const btnKz = document.getElementById('btn-kz');
             
             if (lang === 'kz') {
-                btnKz.classList.add('lang-active');
-                btnKz.classList.remove('text-gray-500');
-                btnRu.classList.remove('lang-active');
-                btnRu.classList.add('text-gray-500');
+                btnKz.className = "px-3 py-1 rounded-lg transition-all lang-active";
+                btnRu.className = "px-3 py-1 rounded-lg transition-all text-gray-500 ml-1";
             } else {
-                btnRu.classList.add('lang-active');
-                btnRu.classList.remove('text-gray-500');
-                btnKz.classList.remove('lang-active');
-                btnKz.classList.add('text-gray-500');
+                btnRu.className = "px-3 py-1 rounded-lg transition-all lang-active";
+                btnKz.className = "px-3 py-1 rounded-lg transition-all text-gray-500 ml-1";
             }
         }
 
-        // Устанавливаем казахский по умолчанию при загрузке
-        window.onload = () => {
-            setLanguage('kz');
-        };
+        // Логика перехода (на будущее)
+        function navigate(section) {
+            console.log("Section selected:", section);
+            // Здесь будет логика открытия анкеты
+        }
+
+        window.onload = () => setLanguage('kz');
     </script>
 </body>
 </html>
-
