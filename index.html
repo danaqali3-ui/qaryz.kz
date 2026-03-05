@@ -1,15 +1,14 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Qaryz.kz - Главная</title>
+    <title>Qaryz.kz - Басты бет</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --tg-bg: #ffffff;
-            --tg-text: #000000;
-            --tg-secondary: #f6f8fa;
+            --tg-bg: #fdfdfe; 
+            --tg-text: #0f172a;
             --blue-brand: #2563eb;
         }
 
@@ -20,163 +19,172 @@
             margin: 0;
             padding: 0;
             user-select: none;
-        }
-
-        .card-choice {
-            background-color: var(--tg-secondary);
-            border: 1px solid rgba(0,0,0,0.03);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             -webkit-tap-highlight-color: transparent;
         }
 
-        .card-choice:active {
-            transform: scale(0.97);
-            background-color: rgba(0,0,0,0.06);
-        }
-
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
+        /* Карточки с уменьшенной закругленностью и строгими границами */
+        .card-btn {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+            text-align: left;
             width: 100%;
-            height: 75px;
-            background: white;
-            border-top: 1px solid rgba(0,0,0,0.08);
             display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
-            padding-bottom: env(safe-area-inset-bottom);
+            align-items: flex-start;
+            gap: 14px;
+            overflow: hidden;
         }
 
-        .badge-ref {
-            background: #ef4444;
-            color: white;
-            font-size: 9px;
-            padding: 2px 6px;
-            border-radius: 8px;
-            position: absolute;
-            top: -10px;
-            right: -18px;
-            font-weight: 900;
-            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        .card-btn:active {
+            transform: scale(0.99);
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
         }
 
-        .list-item::before {
-            content: "•";
-            color: currentColor;
-            opacity: 0.4;
-            margin-right: 8px;
+        .lang-btn {
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        .lang-active {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            color: var(--blue-brand);
+        }
+
+        /* Вертикальный цветовой акцент внутри кнопки */
+        .accent-line {
+            width: 4px;
+            align-self: stretch;
+            flex-shrink: 0;
         }
     </style>
 </head>
-<body class="antialiased text-slate-900">
+<body class="antialiased">
 
-    <div class="min-h-screen pb-28">
+    <div class="min-h-screen pb-12">
         
-        <!-- Header -->
-        <header class="p-6 flex justify-between items-end">
-            <div>
-                <h1 class="text-3xl font-[1000] text-blue-600 tracking-tighter uppercase leading-none">Qaryz.kz</h1>
-                <p class="text-[10px] opacity-40 mt-1.5 uppercase font-black tracking-widest italic">Ваш финансовый щит и навигатор</p>
-            </div>
-            <div class="flex bg-gray-100 p-1 rounded-2xl text-[10px] font-black shadow-inner border border-gray-200">
-                <button class="px-4 py-1.5 bg-white rounded-xl shadow-sm">RU</button>
-                <button class="px-4 py-1.5 text-gray-400">KZ</button>
+        <!-- БЛОК 1 — Header -->
+        <header class="p-5 flex justify-between items-center border-b border-slate-100 bg-white sticky top-0 z-10">
+            <h1 class="text-xl font-black text-blue-600 tracking-tighter uppercase">Qaryz.kz</h1>
+            <div class="flex bg-slate-100 p-1 rounded-lg text-[10px] font-black">
+                <button id="btn-kz" onclick="setLanguage('kz')" class="lang-btn px-4 py-1.5 lang-active font-black">KZ</button>
+                <button id="btn-ru" onclick="setLanguage('ru')" class="lang-btn px-4 py-1.5 text-slate-500 font-black">RU</button>
             </div>
         </header>
 
-        <!-- Hero Section -->
-        <section class="px-6 py-2">
-            <h2 class="text-[32px] font-black leading-[1.05] mb-4 tracking-tight">
-                Возьмите свои кредиты под полный контроль
+        <!-- БЛОК 2 — Главный оффер -->
+        <section class="px-5 pt-8 pb-8">
+            <h2 id="hero-title" class="text-[26px] font-extrabold leading-tight mb-3 tracking-tight text-slate-900">
+                Несиелеріңізді бақылауға алыңыз
             </h2>
-            <p class="text-[15px] text-slate-500 leading-snug font-medium pr-4">
-                Узнайте, как законно сократить переплату по действующим займам или остановить давление коллекторов, если платить стало трудно.
+            <p id="hero-sub" class="text-[14px] text-slate-500 leading-relaxed font-medium">
+                Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға и шоттар бұғатталған кезде не істеу керектігін біліңіз.
             </p>
         </section>
 
-        <!-- Choice Section (Выбор пути) -->
-        <section class="px-6 py-6 space-y-5">
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] ml-1">Выберите вашу ситуацию</h3>
+        <!-- БЛОК 3 — Кнопки выбора ситуации -->
+        <section class="px-5 space-y-3">
             
-            <!-- Вариант А: Оптимизация -->
-            <button class="card-choice w-full text-left p-7 rounded-[2.5rem] relative overflow-hidden border-l-[6px] border-blue-500 shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="w-12 h-12 bg-blue-100 flex items-center justify-center rounded-2xl text-2xl shadow-inner">📈</div>
-                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md text-blue-600 font-black text-lg">→</div>
+            <!-- Кнопка 1: Оптимизация -->
+            <button class="card-btn p-4 rounded-[12px]">
+                <div class="accent-line bg-blue-500"></div>
+                <div class="flex-1">
+                    <h4 id="btn1-title" class="text-[14px] font-bold leading-tight text-slate-900 mb-1.5 uppercase tracking-tight">
+                        Несиелерімді уақытылы төлеп жүрмін — артық төлемді азайтқым келеді
+                    </h4>
+                    <p id="btn1-desc" class="text-[12px] text-slate-500 leading-snug font-medium">
+                        Несиені қаншалықты үнемдеуге болатынын және оны қалай тезірек жабуға болатынын есептеңіз.
+                    </p>
                 </div>
-                <h4 class="text-[20px] font-black leading-tight text-slate-900 mb-3 pr-4 italic">Хочу платить меньше</h4>
-                
-                <ul class="text-[13px] font-bold text-slate-500 space-y-1.5 opacity-80">
-                    <li class="list-item">Расчеты досрочного погашения</li>
-                    <li class="list-item">Инструкции по возврату страховок</li>
-                    <li class="list-item">Стратегии уменьшения срока</li>
-                </ul>
             </button>
 
-            <!-- Вариант Б: Антикризис -->
-            <button class="card-choice w-full text-left p-7 rounded-[2.5rem] relative overflow-hidden border-l-[6px] border-red-500 shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <div class="w-12 h-12 bg-red-100 flex items-center justify-center rounded-2xl text-2xl shadow-inner">🛡️</div>
-                    <div class="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md text-red-600 font-black text-lg">→</div>
+            <!-- Кнопка 2: Сложности -->
+            <button class="card-btn p-4 rounded-[12px]">
+                <div class="accent-line bg-slate-300"></div>
+                <div class="flex-1">
+                    <h4 id="btn2-title" class="text-[14px] font-bold leading-tight text-slate-900 mb-1.5 uppercase tracking-tight">
+                        Төлем жасауда қиындықтар бар немесе төлем кешіктірілді
+                    </h4>
+                    <p id="btn2-desc" class="text-[12px] text-slate-500 leading-snug font-medium">
+                        Айыппұлдарды қалай тоқтату және банкпен келісу туралы қадамдық алгоритм.
+                    </p>
                 </div>
-                <h4 class="text-[20px] font-black leading-tight text-slate-900 mb-3 pr-4 italic">Тяжело платить</h4>
-                
-                <ul class="text-[13px] font-bold text-slate-500 space-y-1.5 opacity-80">
-                    <li class="list-item">Алгоритм досудебного урегулирования</li>
-                    <li class="list-item">Законная остановка штрафов</li>
-                    <li class="list-item">Снятие арестов со счетов</li>
-                </ul>
             </button>
+
+            <!-- Кнопка 3: Аресты -->
+            <button class="card-btn p-4 rounded-[12px]">
+                <div class="accent-line bg-slate-800"></div>
+                <div class="flex-1">
+                    <h4 id="btn3-title" class="text-[14px] font-bold leading-tight text-slate-900 mb-1.5 uppercase tracking-tight">
+                        Шоттар бұғатталды
+                    </h4>
+                    <p id="btn3-desc" class="text-[12px] text-slate-500 leading-snug font-medium">
+                        Шоттарға тыйым салынғанда не істеу керек и ақшаға қолжетімділікті қалай қалпына келтіруге болады.
+                    </p>
+                </div>
+            </button>
+
         </section>
 
-        <!-- Блок доверия -->
-        <section class="px-6 py-2 grid grid-cols-3 gap-3">
-            <div class="bg-slate-50 p-4 rounded-[1.5rem] text-center border border-slate-100 shadow-sm">
-                <div class="text-xl mb-1">👤</div>
-                <p class="text-[9px] font-black opacity-40 uppercase tracking-tighter">Без ИИН</p>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-[1.5rem] text-center border border-slate-100 shadow-sm">
-                <div class="text-xl mb-1">⚖️</div>
-                <p class="text-[9px] font-black opacity-40 uppercase tracking-tighter">По закону РК</p>
-            </div>
-            <div class="bg-slate-50 p-4 rounded-[1.5rem] text-center border border-slate-100 shadow-sm">
-                <div class="text-xl mb-1">💰</div>
-                <p class="text-[9px] font-black opacity-40 uppercase tracking-tighter">Экономия</p>
+        <!-- БЛОК 4 — Доверие и Безопасность -->
+        <section class="px-5 mt-10">
+            <div class="bg-slate-50 border border-slate-200 p-5 rounded-[12px]">
+                <div class="flex gap-4">
+                    <div class="text-xl flex-shrink-0">🔒</div>
+                    <p id="privacy-text" class="text-[11px] font-semibold leading-relaxed text-slate-600">
+                        Біз ЖСН, телефон нөмірін, банктік карта деректерін және растау кодтарын сұрамаймыз. Барлық есептеулер анонимді түрде орындалады және банктерге немесе үшінші тұлғаларға берілмейді.
+                    </p>
+                </div>
             </div>
         </section>
-
-        <!-- Social Proof / Action -->
-        <div class="px-6 mt-8">
-            <div class="bg-blue-600 p-7 rounded-[2.5rem] text-white text-center shadow-2xl shadow-blue-200 relative overflow-hidden">
-                <div class="absolute -right-6 -top-6 w-28 h-28 bg-white/10 rounded-full blur-2xl"></div>
-                <p class="text-[11px] font-black opacity-70 mb-1 uppercase tracking-[0.2em]">Помогли уже многим</p>
-                <div class="text-2xl font-[1000] mb-5 tracking-tight">12,450+ граждан РК</div>
-                <button class="w-full bg-white text-blue-600 py-4.5 rounded-2xl font-black text-sm uppercase tracking-widest active:scale-95 transition-transform shadow-lg">
-                    Начать расчет
-                </button>
-            </div>
-        </div>
 
     </div>
 
-    <!-- Navigation Bar -->
-    <nav class="nav-bar">
-        <button class="flex flex-col items-center gap-1 text-blue-600">
-            <span class="text-xl">🏠</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Главная</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-slate-400 relative">
-            <span class="text-xl">👥</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Партнерам</span>
-            <span class="badge-ref">+1000₸</span>
-        </button>
-        <button class="flex flex-col items-center gap-1 text-slate-400">
-            <span class="text-xl">📚</span>
-            <span class="text-[9px] font-black uppercase tracking-tighter">Инфо</span>
-        </button>
-    </nav>
+    <script>
+        // Объект с переводами для всех элементов страницы
+        const translations = {
+            ru: {
+                heroTitle: "Возьмите кредиты под контроль",
+                heroSub: "Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.",
+                btn1Title: "Оплачиваю вовремя — хочу уменьшить переплату",
+                btn1Desc: "Рассчитайте, сколько можно сократить и как закрыть кредит быстрее.",
+                btn2Title: "Есть сложности с оплатой или просрочка",
+                btn2Desc: "Пошаговый алгоритм, как остановить штрафы и договориться с банком.",
+                btn3Title: "Счета заблокированы",
+                btn3Desc: "Что делать при аресте счетов и как восстановить доступ к деньгам.",
+                privacy: "Мы не запрашиваем ИИН, номер телефона, данные банковских карт и коды подтверждения. Все расчёты выполняются анонимно и не передаются банкам или третьим лицам."
+            },
+            kz: {
+                heroTitle: "Несиелеріңізді бақылауға алыңыз",
+                heroSub: "Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға и шоттар бұғатталған кезде не істеу керектігін біліңіз.",
+                btn1Title: "Несиелерімді уақытылы төлеп жүрмін — артық төлемді азайтқым келеді",
+                btn1Desc: "Несиені қаншалықты үнемдеуге болатынын және оны қалай тезірек жабуға болатынын есептеңіз.",
+                btn2Title: "Төлем жасауда қиындықтар бар немесе төлем кешіктірілді",
+                btn2Desc: "Айыппұлдарды қалай тоқтату және банкпен келісу туралы қадамдық алгоритм.",
+                btn3Title: "Шоттар бұғатталды",
+                btn3Desc: "Шоттарға тыйым салынғанда не істеу керек и ақшаға қолжетімділікті қалай қалпына келтіруге болады.",
+                privacy: "Біз ЖСН, телефон нөмірін, банктік карта деректерін және растау кодтарын сұрамаймыз. Барлық есептеулер анонимді түрде орындалады және банктерге немесе үшінші тұлғаларға берілмейді."
+            }
+        };
 
-</body>
-</html>
+        /**
+         * Функция переключения языка
+         * @param {string} lang - код языка ('ru' или 'kz')
+         */
+        function setLanguage(lang) {
+            // Плавное обновление текстов
+            document.getElementById('hero-title').innerText = translations[lang].heroTitle;
+            document.getElementById('hero-sub').innerText = translations[lang].heroSub;
+            document.getElementById('btn1-title').innerText = translations[lang].btn1Title;
+            document.getElementById('btn1-desc').innerText = translations[lang].btn1Desc;
+            document.getElementById('btn2-title').innerText = translations[lang].btn2Title;
+            document.getElementById('btn2-desc').innerText = translations[lang].btn2Desc;
+            document.getElementById('btn3-title').innerText = translations[lang].btn3Title;
+            document.getElementById('btn3-desc').innerText = translations[lang].btn3Desc;
+            document.getElementById('privacy-text').innerText = translations[lang].privacy;
+
+            // Обновление состояния кнопок в хедере
+            const btnKz = document.getElementById('btn-kz');
+            const btnRu = document.getElementById('btn-ru');
