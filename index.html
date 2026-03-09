@@ -1,299 +1,98 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  ShieldCheck, 
-  ChevronRight, 
-  Calculator, 
-  AlertCircle, 
-  CreditCard, 
-  ArrowLeft,
-  TrendingDown,
-  Lock,
-  FileText,
-  Clock,
-  CheckCircle2,
-  Wallet
-} from 'lucide-react';
-
-const TRANSLATIONS = {
-  ru: {
-    header: "Qaryz.kz",
-    heroTitle: "Возьмите кредиты под контроль",
-    heroSubTitle: "Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.",
-    selectSituation: "Выберите ситуацию:",
-    situations: [
-      { id: 'audit', text: "Как уменьшить переплату по кредиту", screen: 2 },
-      { id: 'difficulties', text: "Стало сложно оплачивать кредиты", screen: 7 }, // На экран инструкций
-      { id: 'arrears', text: "Уже есть просрочка", screen: 8 },
-      { id: 'arrest', text: "Арестовали счета", screen: 7 },
-      { id: 'collectors', text: "Звонят коллекторы", screen: 7 },
-    ],
-    securityNote: "Мы не запрашиваем ИИН, номер телефона, данные банковских карт и коды подтверждения. Все расчёты выполняются анонимно.",
-    back: "Назад",
-    calculate: "Рассчитать",
-    fields: {
-      monthly: "Ежемесячный платеж",
-      remains: "Остаток основного долга",
-      isArrears: "Есть ли просрочка?",
-    },
-    results: {
-      title: "Анализ кредита",
-      overpayment: "Ваша переплата составит:",
-      strategy: "Стратегия экономии",
-      economyMsg: "Внося дополнительно по 10 000 ₸ ежемесячно, вы сократите срок на {months} мес. и сэкономите {money} ₸.",
-      getPlan: "Получить пошаговый план",
-      offerTitle: "Индивидуальный план выхода из долгов",
-      offerPrice: "Всего за 1 990 ₸",
-      buyNow: "Оплатить и получить план"
-    },
-    legal: {
-      arrestTitle: "Арест и коллекторы",
-      step1: "Проверьте задолженность в АИС ОИП",
-      step2: "Заявление о сохранении 1 ПМ",
-      step3: "Запрет на выезд: как снять?",
-      arrearsTitle: "Остановка пени и штрафов",
-      arrearsDesc: "Если у вас просрочка более 30 дней, вы имеете право на досудебное урегулирование."
-    }
-  },
-  kz: {
-    header: "Qaryz.kz",
-    heroTitle: "Несиелеріңізді бақылауға алыңыз",
-    heroSubTitle: "Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға және шоттар бұғатталған кезде не істеу керектігін біліңіз.",
-    selectSituation: "Тиісті нұсқаны таңдаңыз:",
-    situations: [
-      { id: 'audit', text: "Несие бойынша артық төлемді қалай азайтуға болады", screen: 2 },
-      { id: 'difficulties', text: "Қаржылық қиындықтар туындады", screen: 7 },
-      { id: 'arrears', text: "Мерзімі өткен берешек бар", screen: 8 },
-      { id: 'arrest', text: "Шоттарға бұғат қойылды", screen: 7 },
-      { id: 'collectors', text: "Коллекторлар хабарласып жатыр", screen: 7 },
-    ],
-    securityNote: "Біз ЖСН, телефон нөмірін, банктік карта деректерін және растау кодтарын сұрамаймыз. Барлық есептеулер анонимді.",
-    back: "Артқа",
-    calculate: "Есептеу",
-    fields: {
-      monthly: "Ай сайынғы төлем",
-      remains: "Негізгі борыш қалдығы",
-      isArrears: "Төлем кешіктірілді ме?",
-    },
-    results: {
-      title: "Несие талдауы",
-      overpayment: "Сіздің артық төлеміңіз:",
-      strategy: "Үнемдеу стратегиясы",
-      economyMsg: "Ай сайын қосымша 10 000 ₸ төлесеңіз, мерзімді {months} айға қысқартып, {money} ₸ үнемдейсіз.",
-      getPlan: "Қадамдық жоспарды алу",
-      offerTitle: "Қарыздан құтылудың жеке жоспары",
-      offerPrice: "Бар болғаны 1 990 ₸",
-      buyNow: "Төлеу және жоспарды алу"
-    },
-    legal: {
-      arrestTitle: "Бұғаттау және коллекторлар",
-      step1: "АИС ОИП арқылы қарызды тексеру",
-      step2: "1 КМ сақтау туралы өтініш",
-      step3: "Шетелге шығу шектеуін алу",
-      arrearsTitle: "Өсімпұлды тоқтату",
-      arrearsDesc: "Егер кешіктіру 30 күннен асса, сіз сотқа дейінгі реттеуге құқылысыз."
-    }
-  }
-};
-
-export default function App() {
-  const [lang, setLang] = useState('ru');
-  const [screen, setScreen] = useState(1);
-  const t = useMemo(() => TRANSLATIONS[lang], [lang]);
-
-  const [loan, setLoan] = useState({ monthly: '', remains: '', isArrears: false });
-
-  const calc = useMemo(() => {
-    if (!loan.monthly || !loan.remains) return { overpayment: 0, savedMonths: 0, economy: 0 };
-    const m = parseFloat(loan.monthly);
-    const r = parseFloat(loan.remains);
-    const months = Math.ceil(r / (m * 0.7)); // Приблизительный аннуитет
-    const saved = Math.ceil(r / ((m + 10000) * 0.7));
-    return {
-      overpayment: Math.round((m * months) - r),
-      savedMonths: months - saved,
-      economy: Math.round((months - saved) * m)
-    };
-  }, [loan]);
-
-  const Header = ({ title, back = 1 }) => (
-    <div className="p-4 bg-white border-b flex items-center gap-4 sticky top-0 z-50">
-      <button onClick={() => setScreen(back)} className="p-2 -ml-2 rounded-full active:bg-slate-100">
-        <ArrowLeft className="w-6 h-6 text-slate-600" />
-      </button>
-      <h2 className="font-bold text-slate-800 line-clamp-1">{title}</h2>
-    </div>
-  );
-
-  // Экран 1: Главный
-  if (screen === 1) return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="p-4 bg-white border-b flex justify-between items-center">
-        <h1 className="text-xl font-black text-blue-700 tracking-tighter italic">QARYZ.KZ</h1>
-        <div className="flex bg-slate-100 p-1 rounded-lg">
-          {['kz', 'ru'].map(l => (
-            <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 rounded-md text-xs font-bold ${lang === l ? 'bg-white shadow text-blue-700' : 'text-slate-500'}`}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </header>
-      <main className="p-6 space-y-8 flex-1">
-        <div className="space-y-3">
-          <h2 className="text-3xl font-black text-slate-900 leading-tight">{t.heroTitle}</h2>
-          <p className="text-slate-500 font-medium">{t.heroSubTitle}</p>
-        </div>
-        <div className="space-y-3">
-          <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t.selectSituation}</p>
-          {t.situations.map(s => (
-            <button key={s.id} onClick={() => setScreen(s.screen)} className="w-full p-5 bg-white border border-slate-200 rounded-3xl flex justify-between items-center text-left hover:border-blue-500 transition-all active:scale-[0.98] shadow-sm">
-              <span className="font-bold text-slate-700 text-sm">{s.text}</span>
-              <ChevronRight className="w-5 h-5 text-blue-500" />
-            </button>
-          ))}
-        </div>
-      </main>
-      <footer className="p-6">
-        <div className="bg-blue-50 p-4 rounded-3xl border border-blue-100 flex gap-3 italic">
-          <ShieldCheck className="w-6 h-6 text-blue-600 shrink-0" />
-          <p className="text-[10px] text-blue-800 font-semibold leading-relaxed">{t.securityNote}</p>
-        </div>
-      </footer>
-    </div>
-  );
-
-  // Экран 2: Ввод данных
-  if (screen === 2) return (
-    <div className="min-h-screen bg-white">
-      <Header title={t.fields.monthly} />
-      <div className="p-6 space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase">{t.fields.monthly} (₸)</label>
-            <input type="number" className="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none text-xl font-bold transition-all" value={loan.monthly} onChange={e => setLoan({...loan, monthly: e.target.value})} placeholder="50 000" />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase">{t.fields.remains} (₸)</label>
-            <input type="number" className="w-full p-5 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-blue-500 focus:bg-white outline-none text-xl font-bold transition-all" value={loan.remains} onChange={e => setLoan({...loan, remains: e.target.value})} placeholder="1 000 000" />
-          </div>
-        </div>
-        <button onClick={() => setScreen(3)} disabled={!loan.monthly || !loan.remains} className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 disabled:opacity-50">
-          {t.calculate}
-        </button>
-      </div>
-    </div>
-  );
-
-  // Экран 3 & 4: Результаты
-  if (screen === 3 || screen === 4) return (
-    <div className="min-h-screen bg-slate-50">
-      <Header title={t.results.title} back={2} />
-      <div className="p-6 space-y-6">
-        <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white space-y-1 relative overflow-hidden">
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{t.results.overpayment}</p>
-          <p className="text-4xl font-black tracking-tighter">~{calc.overpayment.toLocaleString()} ₸</p>
-          <Calculator className="absolute -right-6 -bottom-6 w-32 h-32 text-white/5 rotate-12" />
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4">
-          <div className="flex items-center gap-2">
-            <TrendingDown className="w-5 h-5 text-green-500" />
-            <h3 className="font-bold text-slate-800">{t.results.strategy}</h3>
-          </div>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {t.results.economyMsg.replace('{months}', calc.savedMonths).replace('{money}', calc.economyMoney || calc.economy.toLocaleString())}
-          </p>
-        </div>
-
-        <button onClick={() => setScreen(5)} className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl flex justify-between px-6 items-center">
-          <span>{t.results.getPlan}</span>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-    </div>
-  );
-
-  // Экран 5: Оффер
-  if (screen === 5) return (
-    <div className="min-h-screen bg-white">
-      <Header title={t.results.getPlan} back={4} />
-      <div className="p-6 space-y-8">
-        <div className="text-center space-y-4">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-            <FileText className="w-10 h-10 text-blue-600" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900">{t.results.offerTitle}</h2>
-          <p className="text-slate-500">Алгоритм снижения долговой нагрузки, подготовленный юристами.</p>
-        </div>
-        <div className="space-y-3">
-          {['Анализ всех переплат', 'Образцы заявлений в банки', 'Инструкция по снятию ареста'].map(i => (
-            <div key={i} className="flex gap-3 items-center p-4 bg-slate-50 rounded-2xl">
-              <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-              <span className="text-sm font-bold text-slate-700">{i}</span>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Qaryz.kz</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .active-tab { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-weight: bold; }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-900">
+    <div id="app" class="max-w-md mx-auto min-h-screen p-4 pb-10">
+        <div class="flex justify-between items-center mb-8">
+            <span class="font-bold text-xl text-blue-600">Qaryz.kz</span>
+            <div class="bg-gray-200 p-1 rounded-lg flex gap-1 text-sm">
+                <button id="btn-ru" onclick="setLang('ru')" class="px-3 py-1 rounded-md transition">RU</button>
+                <button id="btn-kz" onclick="setLang('kz')" class="px-3 py-1 rounded-md transition">KZ</button>
             </div>
-          ))}
         </div>
-        <div className="pt-4 space-y-4">
-          <div className="text-center font-black text-2xl text-blue-700">{t.results.offerPrice}</div>
-          <button className="w-full py-5 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 flex justify-center gap-2 items-center">
-            <Wallet className="w-5 h-5" />
-            {t.results.buyNow}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
-  // Экран 7: Юр. инструкции
-  if (screen === 7) return (
-    <div className="min-h-screen bg-white">
-      <Header title={t.legal.arrestTitle} />
-      <div className="p-6 space-y-6">
-        <div className="p-6 bg-red-50 rounded-[2rem] border border-red-100 flex gap-4">
-          <Lock className="w-8 h-8 text-red-500 shrink-0" />
-          <p className="text-sm font-bold text-red-900 leading-tight">Ваши действия при блокировке счетов судебными исполнителями.</p>
+        <div id="main-content">
+            <h1 id="title" class="text-2xl font-extrabold mb-2 leading-tight"></h1>
+            <p id="subtitle" class="text-gray-600 mb-8"></p>
+            
+            <div id="options-list" class="space-y-3">
+                </div>
         </div>
-        <div className="space-y-6">
-          {[t.legal.step1, t.legal.step2, t.legal.step3].map((s, i) => (
-            <div key={i} className="flex gap-4 group">
-              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">{i+1}</div>
-              <p className="text-sm font-bold text-slate-700 pt-1">{s}</p>
-            </div>
-          ))}
-        </div>
-        <button onClick={() => setScreen(5)} className="w-full mt-6 py-4 border-2 border-slate-900 rounded-2xl font-black text-slate-900 flex justify-center gap-2 items-center">
-          <FileText className="w-5 h-5" />
-          Скачать шаблоны заявлений
-        </button>
-      </div>
-    </div>
-  );
 
-  // Экран 8: Просрочка
-  if (screen === 8) return (
-    <div className="min-h-screen bg-white">
-      <Header title={t.legal.arrearsTitle} />
-      <div className="p-6 space-y-6">
-        <div className="p-6 bg-amber-50 rounded-[2rem] border border-amber-100 space-y-3">
-          <Clock className="w-10 h-10 text-amber-600 opacity-20" />
-          <h3 className="font-black text-amber-900 text-lg leading-tight">{t.legal.arrearsTitle}</h3>
-          <p className="text-sm text-amber-800 font-medium">{t.legal.arrearsDesc}</p>
+        <div class="mt-12 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+            <p id="footer-note" class="text-[11px] text-blue-800 text-center leading-relaxed"></p>
         </div>
-        <div className="space-y-4">
-          <p className="text-xs font-black uppercase text-slate-400">Что нужно сделать:</p>
-          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-slate-700">
-            Написать заявление о реструктуризации долга в банк (в течение 30 дней после просрочки).
-          </div>
-          <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 text-sm font-bold text-slate-700">
-            Зафиксировать факт ухудшения финансового положения документально.
-          </div>
-        </div>
-        <button onClick={() => setScreen(5)} className="w-full py-5 bg-slate-900 text-white font-black rounded-2xl flex justify-between px-6 items-center">
-          <span>{t.results.getPlan}</span>
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
     </div>
-  );
 
-  return null;
-}
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let currentLang = 'ru';
+
+        const translations = {
+            ru: {
+                title: "Возьмите кредиты под контроль",
+                subtitle: "Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.",
+                footer: "Мы не запрашиваем ИИН, номер телефона и данные банковских карт.",
+                options: [
+                    "Как уменьшить переплату по кредиту",
+                    "Стало сложно оплачивать кредиты",
+                    "Уже есть просрочка",
+                    "Арестовали счета",
+                    "Звонят коллекторы"
+                ]
+            },
+            kz: {
+                title: "Несиелеріңізді бақылауға алыңыз",
+                subtitle: "Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға және шоттар бұғатталған кезде не істеу керектігін біліңіз.",
+                footer: "Біз ЖСН, телефон нөмірін және банк карталарының деректерін сұрамаймыз.",
+                options: [
+                    "Несие бойынша артық төлемді қалай азайтуға болады",
+                    "Қаржылық қиындықтар туындады",
+                    "Мерзімі өткен берешек бар",
+                    "Шоттарға бұғат қойылды",
+                    "Коллекторлар хабарласып жатыр"
+                ]
+            }
+        };
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            document.getElementById('title').innerText = t.title;
+            document.getElementById('subtitle').innerText = t.subtitle;
+            document.getElementById('footer-note').innerText = t.footer;
+
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+            t.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left bg-white border border-gray-200 p-4 rounded-2xl transition active:scale-95 flex justify-between items-center shadow-sm";
+                btn.innerHTML = `<span>${opt}</span><span class="text-gray-400">→</span>`;
+                btn.onclick = () => alert(opt); // Позже добавим переходы
+                list.appendChild(btn);
+            });
+
+            // Обновляем вид кнопок переключения
+            document.getElementById('btn-ru').className = lang === 'ru' ? 'px-3 py-1 rounded-md active-tab' : 'px-3 py-1 rounded-md';
+            document.getElementById('btn-kz').className = lang === 'kz' ? 'px-3 py-1 rounded-md active-tab' : 'px-3 py-1 rounded-md';
+        }
+
+        // Запуск при загрузке
+        setLang('ru');
+    </script>
+</body>
+</html>
