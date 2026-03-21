@@ -2,152 +2,431 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Qaryz.kz</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CreditCalc KZ/RU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .card { border-radius: 2rem; }
+        .input-field { 
+            width: 100%; 
+            padding: 0.85rem 1rem; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 0.75rem; 
+            outline: none; 
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+        .input-field:focus { border-color: #5bb78a; ring: 2px solid #5bb78a33; }
+        .btn-primary { background-color: #6ebf97; color: white; transition: all 0.2s; }
+        .btn-primary:hover { background-color: #5bb78a; }
+        .btn-secondary { background-color: #f1f5f9; color: #64748b; }
         .hidden { display: none; }
-        .active-lang { background: white; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active { background-color: #e2e8f0; color: #1e293b; }
+        .toggle-btn.inactive { color: #94a3b8; }
+
+        .strategy-label {
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        .strategy-label:has(input:checked) {
+            border-color: #5bb78a;
+            background-color: #f0fdf4;
+        }
+        input[type="radio"] {
+            width: 1.4rem;
+            height: 1.4rem;
+            accent-color: #5bb78a;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-slate-900">
-    <div id="app" class="max-w-md mx-auto min-h-screen p-4">
+<body class="p-4 md:p-8">
+
+    <div id="app" class="max-w-md mx-auto bg-white shadow-xl card p-6 md:p-8 min-h-[700px] flex flex-col">
         
-        <div class="flex justify-between items-center mb-6">
-            <span class="font-bold text-xl text-blue-600">Qaryz.kz</span>
-            <div class="bg-gray-200 p-1 rounded-lg flex gap-1 text-xs">
-                <button id="btn-ru" onclick="setLang('ru')" class="px-3 py-1 rounded-md">RU</button>
-                <button id="btn-kz" onclick="setLang('kz')" class="px-3 py-1 rounded-md">KZ</button>
+        <!-- Язык -->
+        <div class="flex justify-end mb-4">
+            <div class="bg-gray-100 p-1 rounded-full flex">
+                <button onclick="changeLang('RU')" id="btn-ru" class="text-[10px] font-bold px-3 py-1 rounded-full bg-white shadow-sm mr-1">RU</button>
+                <button onclick="changeLang('KZ')" id="btn-kz" class="text-[10px] font-bold px-3 py-1 rounded-full text-gray-400">KZ</button>
             </div>
         </div>
 
-        <div id="screen-main">
-            <h1 id="h1-title" class="text-2xl font-extrabold mb-2 leading-tight"></h1>
-            <p id="p-subtitle" class="text-gray-600 mb-8 text-[15px]"></p>
-            <p id="p-choose" class="font-bold text-sm mb-4 text-slate-500 uppercase tracking-wide"></p>
-            <div id="main-options" class="space-y-3"></div>
-            <div class="mt-10 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-                <p id="p-footer" class="text-[11px] text-blue-800 text-center leading-relaxed font-medium"></p>
+        <!-- Экран 2: Ввод данных -->
+        <div id="screen-2" class="fade-in">
+            <h1 class="text-2xl font-bold text-gray-800 mb-1" data-ru="Анализ кредита" data-kz="Несие талдауы">Анализ кредита</h1>
+            <p class="text-sm text-gray-400 mb-8" data-ru="Введите данные из приложения банка" data-kz="Банк қосымшасындағы деректерді енгізіңіз">Введите данные из приложения банка</p>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1" data-ru="Сумма кредита (₸)" data-kz="Кредит сомасы (₸)">Сумма кредита (₸)</label>
+                    <input type="number" id="loanAmount" class="input-field" placeholder="1 000 000">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1" data-ru="Дата получения" data-kz="Алынған күні">Дата получения</label>
+                        <input type="date" id="startDate" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1" data-ru="Дата окончания" data-kz="Аяқталу күні">Дата окончания</label>
+                        <input type="date" id="endDate" class="input-field text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1" data-ru="Ежемесячный платёж (₸)" data-kz="Ай сайынғы төлем (₸)">Ежемесячный платёж (₸)</label>
+                    <input type="number" id="monthlyPayment" class="input-field" placeholder="0">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1" data-ru="Остаток основного долга (₸)" data-kz="Негізгі борыш қалдығы (₸)">Остаток основного долга (₸)</label>
+                    <input type="number" id="remainingDebt" class="input-field" placeholder="0">
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl space-y-5 border border-slate-100">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-bold text-gray-800" data-ru="Было ли досрочное погашение?" data-kz="Мерзімінен бұрын төледіңіз бе?">Было ли досрочное погашение?</span>
+                            <div class="flex bg-white p-1 rounded-lg border border-gray-200">
+                                <button onclick="toggleExtra('early', true)" id="early-yes" class="toggle-btn" data-ru="ДА" data-kz="ИӘ">ДА</button>
+                                <button onclick="toggleExtra('early', false)" id="early-no" class="toggle-btn active" data-ru="НЕТ" data-kz="ЖОҚ">НЕТ</button>
+                            </div>
+                        </div>
+                        <div id="early-input-div" class="hidden mt-3">
+                            <input type="number" id="earlyPaymentSum" class="input-field bg-white" data-ru-ph="Сумма всех досрочных" data-kz-ph="Мерзімінен бұрын төлем сомасы" placeholder="Сумма всех досрочных">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-gray-800" data-ru="Были просрочки?" data-kz="Төлем кешіктірілді ме?">Были просрочки?</span>
+                                <span class="text-[10px] text-gray-400 mt-1 max-w-[180px]" data-ru="(Если были штрафы или задержки)" data-kz="(Егер айыппұлдар болса)">(Если были штрафы или задержки)</span>
+                            </div>
+                            <div class="flex bg-white p-1 rounded-lg border border-gray-200">
+                                <button onclick="toggleExtra('overdue', true)" id="over-yes" class="toggle-btn" data-ru="ДА" data-kz="БАР">ДА</button>
+                                <button onclick="toggleExtra('overdue', false)" id="over-no" class="toggle-btn active" data-ru="НЕТ" data-kz="ЖОҚ">НЕТ</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <button onclick="calculateAnalysis()" class="w-full btn-primary py-4 rounded-2xl font-bold text-lg shadow-lg shadow-emerald-100" data-ru="Рассчитать бесплатно" data-kz="Тегін есептеу">Рассчитать бесплатно</button>
             </div>
         </div>
 
-        <div id="screen-audit" class="hidden">
-            <button onclick="showScreen('main')" class="text-blue-600 mb-6 text-sm font-bold flex items-center gap-1">← Артқа / Назад</button>
-            <h2 id="audit-header" class="text-xl font-bold mb-6"></h2>
+        <!-- Экран 3: Результат анализа -->
+        <div id="screen-3" class="hidden fade-in h-full flex flex-col">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6" data-ru="Результаты анализа" data-kz="Талдау нәтижелері">Результаты анализа</h1>
             
-            <div class="space-y-5 bg-white p-6 rounded-[32px] shadow-sm border border-gray-100">
-                <div>
-                    <label id="l-sum" class="block text-sm font-bold text-slate-700 mb-2"></label>
-                    <input type="number" id="in-sum" placeholder="0" class="w-full bg-gray-50 border-0 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="space-y-6 flex-grow pb-8 overflow-y-auto">
+                <!-- Блок 1: Данные по кредиту -->
+                <div class="bg-gray-50 p-5 rounded-2xl space-y-3">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3" data-ru="Данные по кредиту" data-kz="Несие бойынша деректер">Данные по кредиту</h3>
+                    
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500" data-ru="Сумма кредитования:" data-kz="Несие сомасы:">Сумма кредитования:</span>
+                        <span class="font-bold text-gray-800" id="res-amount">0 ₸</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500" data-ru="Срок кредита:" data-kz="Несие мерзімі:">Срок кредита:</span>
+                        <span class="font-bold text-gray-800" id="res-term">--</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500" data-ru="Переплата по кредиту:" data-kz="Несие бойынша артық төлем:">Переплата по кредиту:</span>
+                        <span class="font-bold text-red-600" id="res-total-overpayment">0 ₸</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm pt-2 border-t border-gray-200">
+                        <span class="text-gray-500 font-medium" data-ru="Реальная % ставка:" data-kz="Нақты % мөлшерлеме:">Реальная % ставка:</span>
+                        <span class="font-black text-gray-900 text-lg" id="res-rate">0%</span>
+                    </div>
                 </div>
-                <div>
-                    <label id="l-date" class="block text-sm font-bold text-slate-700 mb-2"></label>
-                    <input type="text" id="in-date" placeholder="ДД.ММ.ГГГГ" class="w-full bg-gray-50 border-0 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500">
+
+                <!-- Блок 2: Блок про оплаты -->
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
+                        <p class="text-blue-800 text-sm font-bold" id="paymentsCountText"></p>
+                    </div>
+
+                    <div class="px-2 space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500" data-ru="— Основной долг:" data-kz="— Негізгі борыш:">— Основной долг:</span>
+                            <span class="font-bold text-gray-700" id="principalPaidText">0 ₸</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500" data-ru="— Проценты банка:" data-kz="— Пайыздар:">— Проценты банка:</span>
+                            <span class="font-bold text-gray-700" id="interestPaidText">0 ₸</span>
+                        </div>
+                        <div class="flex justify-between text-sm pt-2 border-t border-gray-100">
+                            <span class="text-gray-800 font-bold" data-ru="Всего выплачено:" data-kz="Барлығы төленді:">Всего выплачено:</span>
+                            <span class="font-black text-gray-900" id="totalSpentAlready">0 ₸</span>
+                        </div>
+                    </div>
+
+                    <!-- Будущая переплата -->
+                    <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100">
+                        <p class="text-xs text-orange-600 font-bold uppercase mb-2" data-ru="Если продолжите оплачивать по графику — переплатите ещё:" data-kz="Егер кесте бойынша төлеуді жалғастырсаңыз — тағы артық төлейсіз:">Если продолжите оплачивать по графику — переплатите ещё:</p>
+                        <p class="text-orange-900 font-extrabold text-2xl" id="futureInterestText">0 ₸</p>
+                    </div>
                 </div>
-                <div>
-                    <label id="l-end" class="block text-sm font-bold text-slate-700 mb-2"></label>
-                    <input type="text" id="in-end" placeholder="ДД.ММ.ГГГГ" class="w-full bg-gray-50 border-0 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="mt-auto flex flex-col gap-3">
+                <button onclick="showScreen(4)" class="w-full btn-primary py-4 rounded-2xl font-bold text-base" data-ru="Как сэкономить на процентах?" data-kz="Пайыздарды қалай үнемдеуге болады?">Как сэкономить на процентах?</button>
+                <button onclick="showScreen(2)" class="w-full btn-secondary py-4 rounded-2xl font-bold text-sm" data-ru="Назад" data-kz="Артқа">Назад</button>
+            </div>
+        </div>
+
+        <!-- Экран 4: Персональный расчет -->
+        <div id="screen-4" class="hidden fade-in">
+            <h1 class="text-xl font-bold text-gray-800 mb-6" data-ru="Персональный расчёт экономии" data-kz="Жеке үнемдеу есебі">Персональный расчёт экономии</h1>
+            
+            <div class="space-y-4">
+                <div class="space-y-3">
+                    <label class="strategy-label">
+                        <input type="radio" name="strategy" value="once" checked>
+                        <div class="ml-4">
+                            <span class="block font-bold text-sm text-gray-800" data-ru="Разовый платёж" data-kz="Біржолғы төлем">Разовый платёж</span>
+                            <span class="text-[11px] text-gray-400" data-ru="Внесу крупную сумму один раз" data-kz="Бір рет ірі сома саламын">Внесу крупную сумму один раз</span>
+                        </div>
+                    </label>
+                    <label class="strategy-label">
+                        <input type="radio" name="strategy" value="monthly">
+                        <div class="ml-4">
+                            <span class="block font-bold text-sm text-gray-800" data-ru="Ежемесячная доплата" data-kz="Ай сайынғы қосымша">Ежемесячная доплата</span>
+                            <span class="text-[11px] text-gray-400" data-ru="Буду платить больше каждый месяц" data-kz="Ай сайын көбірек төлеймін">Буду платить больше каждый месяц</span>
+                        </div>
+                    </label>
                 </div>
-                <div>
-                    <label id="l-pay" class="block text-sm font-bold text-slate-700 mb-2"></label>
-                    <input type="number" id="in-pay" placeholder="0" class="w-full bg-gray-50 border-0 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500">
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2 ml-1" data-ru="Сумма (₸)" data-kz="Сомасы (₸)">Сумма (₸)</label>
+                    <input type="number" id="strategyAmount" class="input-field" placeholder="50 000">
                 </div>
-                <div>
-                    <label id="l-remain" class="block text-sm font-bold text-slate-700 mb-2"></label>
-                    <input type="number" id="in-remain" placeholder="0" class="w-full bg-gray-50 border-0 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-blue-500">
+
+                <button onclick="calculateFinalResults()" class="w-full btn-primary py-4 rounded-2xl font-bold text-lg" data-ru="Рассчитать" data-kz="Есептеу">Рассчитать</button>
+            </div>
+
+            <div id="results-block" class="hidden mt-10 space-y-4 pb-10">
+                <h2 class="font-bold text-gray-800 text-lg mb-2" data-ru="Сравнение стратегий" data-kz="Стратегияларды салыстыру">Сравнение стратегий</h2>
+                
+                <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl relative">
+                    <div class="absolute top-0 right-0 bg-[#5bb78a] text-white text-[9px] px-3 py-1 rounded-bl-lg font-black uppercase tracking-wider" data-ru="ВЫГОДНО" data-kz="ТИІМДІ">ВЫГОДНО</div>
+                    <h3 class="font-bold text-emerald-900 mb-4 text-sm" data-ru="Вариант 1: Уменьшение срока" data-kz="1-нұсқа: Мерзімді қысқарту">Вариант 1: Уменьшение срока</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-emerald-700/70" data-ru="Закроется раньше на:" data-kz="Ерте жабылады:">Закроется раньше на:</span>
+                            <span class="font-bold text-gray-800" id="v1-time">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-emerald-700/70" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
+                            <span class="font-bold text-gray-800" id="v1-save">--</span>
+                        </div>
+                        <div class="pt-3 border-t border-emerald-200/50 flex justify-between items-center">
+                            <span class="text-emerald-700/70" data-ru="Общая переплата:" data-kz="Жалпы артық төлем:">Общая переплата:</span>
+                            <span class="font-bold text-gray-800" id="v1-total">--</span>
+                        </div>
+                    </div>
                 </div>
-                <button id="btn-calc" class="w-full bg-blue-600 text-white font-bold py-5 rounded-2xl mt-4 shadow-lg active:scale-95 transition text-lg"></button>
+
+                <div class="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+                    <h3 class="font-bold text-gray-800 mb-4 text-sm" data-ru="Вариант 2: Уменьшение платежа" data-kz="2-нұсқа: Төлемді қысқарту">Вариант 2: Уменьшение платежа</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400" data-ru="Новый платёж:" data-kz="Жаңа төлем:">Новый платёж:</span>
+                            <span class="font-bold text-gray-800" id="v2-payment">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
+                            <span class="font-bold text-gray-800" id="v2-save">--</span>
+                        </div>
+                        <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-gray-400" data-ru="Общая переплата:" data-kz="Жалпы артық төлем:">Общая переплата:</span>
+                            <span class="font-bold text-gray-800" id="v2-total">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-xl flex items-start gap-3 mt-6">
+                    <span class="text-gray-400">ℹ️</span>
+                    <p class="text-[10px] text-gray-400 leading-relaxed italic" data-ru="Расчёт является ориентировочным, так как банки могут использовать собственные методики перерасчёта, учитывать комиссии, округления и внутренние правила начисления процентов. Итоговые суммы могут отличаться.
+" data-kz="Есептеу болжамды болып табылады, себебі банктер қайта есептеу кезінде өз әдістемелерін, комиссияларды, дөңгелектеуді және пайыздарды есептеудің ішкі ережелерін қолдануы мүмкін. Соңғы сома өзгеше болуы ықтимал.">Расчёт является ориентировочным, так как банки могут использовать собственные методики перерасчёта, учитывать комиссии, округления и внутренние правила начисления процентов. Итоговые суммы могут отличаться.</p>
+                </div>
+
+                <button onclick="location.reload()" class="w-full text-[#7b89ab] text-sm font-bold py-6 flex items-center justify-center gap-2" data-ru="← Сбросить и начать заново" data-kz="← Тастау және қайта бастау">
+                    ← Сбросить и начать заново
+                </button>
+            </div>
+            
+            <!-- Кнопка возврата к результатам, чтобы не теряться -->
+            <div class="mt-4 pb-10">
+                <button onclick="showScreen(3)" class="w-full btn-secondary py-4 rounded-2xl font-bold text-sm" data-ru="Назад к результатам анализа" data-kz="Талдау нәтижелеріне қайту">Назад к результатам анализа</button>
             </div>
         </div>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        let currentLang = 'RU';
+        let calculatedRate = 0.15;
+        const state = { hasEarly: false };
 
-        const content = {
-            ru: {
-                title: "Возьмите кредиты под контроль",
-                subtitle: "Как уменьшить переплату, остановить штрафы и действовать при аресте счетов.",
-                choose: "Выберите ситуацию:",
-                footer: "Мы не запрашиваем ИИН, номер телефона, данные банковских карт и коды подтверждения.",
-                audit_h: "Аудит и Анализ",
-                l_sum: "Сумма кредита",
-                l_date: "Дата получения",
-                l_end: "Дата окончания по графику",
-                l_pay: "Ежемесячный платеж",
-                l_remain: "Остаток основного долга",
-                btn_calc: "Провести анализ",
-                options: [
-                    { id: 'audit', text: "Как уменьшить переплату по кредиту" },
-                    { id: '9', text: "Стало сложно оплачивать кредиты" },
-                    { id: 'delay', text: "Уже есть просрочка" },
-                    { id: 'arrest', text: "Арестовали счета" },
-                    { id: 'coll', text: "Звонят коллекторы" }
-                ]
-            },
-            kz: {
-                title: "Несиелеріңізді бақылауға алыңыз",
-                subtitle: "Артық төлемді қалай азайтуға, айыппұлдарды тоқтатуға және шоттар бұғатталған кезде не істеу керектігін біліңіз.",
-                choose: "Тиісті нұсқаны таңдаңыз:",
-                footer: "Біз ЖСН, телефон нөмірін, банк карталарының деректерін және растау кодтарын сұрамаймыз.",
-                audit_h: "Аудит және талдау",
-                l_sum: "Несие сомасы",
-                l_date: "Алынған күні",
-                l_end: "График бойынша аяқталу күні",
-                l_pay: "Ай сайынғы төлем",
-                l_remain: "Негізгі қарыздың қалдығы",
-                btn_calc: "Талдау жүргізу",
-                options: [
-                    { id: 'audit', text: "Несие бойынша артық төлемді қалай азайтуға болады" },
-                    { id: '9', text: "Қаржылық қиындықтар туындады" },
-                    { id: 'delay', text: "Мерзімі өткен берешек бар" },
-                    { id: 'arrest', text: "Шоттарға бұғат қойылды" },
-                    { id: 'coll', text: "Коллекторлар хабарласып жатыр" }
-                ]
-            }
-        };
-
-        function showScreen(id) {
-            document.getElementById('screen-main').classList.add('hidden');
-            document.getElementById('screen-audit').classList.add('hidden');
-            document.getElementById('screen-' + id).classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        function setLang(lang) {
-            const t = content[lang];
-            document.getElementById('h1-title').innerText = t.title;
-            document.getElementById('p-subtitle').innerText = t.subtitle;
-            document.getElementById('p-choose').innerText = t.choose;
-            document.getElementById('p-footer').innerText = t.footer;
-            
-            document.getElementById('audit-header').innerText = t.audit_h;
-            document.getElementById('l-sum').innerText = t.l_sum;
-            document.getElementById('l-date').innerText = t.l_date;
-            document.getElementById('l-end').innerText = t.l_end;
-            document.getElementById('l-pay').innerText = t.l_pay;
-            document.getElementById('l-remain').innerText = t.l_remain;
-            document.getElementById('btn-calc').innerText = t.btn_calc;
-
-            const list = document.getElementById('main-options');
-            list.innerHTML = '';
-            t.options.forEach(opt => {
-                const b = document.createElement('button');
-                b.className = "w-full text-left bg-white border border-gray-100 p-5 rounded-[24px] shadow-sm flex justify-between items-center text-[15px] font-semibold active:bg-gray-50";
-                b.innerHTML = `<span>${opt.text}</span><span class="text-blue-200">→</span>`;
-                b.onclick = () => { if(opt.id === 'audit') showScreen('audit'); else alert(opt.text); };
-                list.appendChild(b);
+        function changeLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-ru]').forEach(el => {
+                const text = el.getAttribute(`data-${lang.toLowerCase()}`);
+                if (el.tagName === 'INPUT') el.placeholder = text;
+                else if (el.getAttribute('data-ru-ph')) el.placeholder = el.getAttribute(`data-${lang.toLowerCase()}-ph`);
+                else el.innerText = text;
             });
-
-            document.getElementById('btn-ru').className = lang === 'ru' ? 'px-4 py-1.5 rounded-md active-lang' : 'px-4 py-1.5 rounded-md text-gray-500';
-            document.getElementById('btn-kz').className = lang === 'kz' ? 'px-4 py-1.5 rounded-md active-lang' : 'px-4 py-1.5 rounded-md text-gray-500';
+            document.getElementById('btn-ru').className = `text-[10px] font-bold px-3 py-1 rounded-full ${lang==='RU'?'bg-white shadow-sm text-gray-800':'text-gray-400'}`;
+            document.getElementById('btn-kz').className = `text-[10px] font-bold px-3 py-1 rounded-full ${lang==='KZ'?'bg-white shadow-sm text-gray-800':'text-gray-400'}`;
         }
 
-        setLang('ru');
+        function toggleExtra(type, val) {
+            if (type === 'early') {
+                state.hasEarly = val;
+                document.getElementById('early-input-div').classList.toggle('hidden', !val);
+                document.getElementById('early-yes').className = `toggle-btn ${val?'active':'inactive'}`;
+                document.getElementById('early-no').className = `toggle-btn ${!val?'active':'inactive'}`;
+            } else {
+                document.getElementById('over-yes').className = `toggle-btn ${val?'active':'inactive'}`;
+                document.getElementById('over-no').className = `toggle-btn ${!val?'active':'inactive'}`;
+            }
+        }
+
+        function showScreen(num) {
+            document.querySelectorAll('#app > div:not(.flex)').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`screen-${num}`).classList.remove('hidden');
+            // Убираем скролл в начало для 4 экрана, чтобы видеть персональный расчет сразу
+            if (num !== 4) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function format(num) { return Math.round(num).toLocaleString('ru-RU') + ' ₸'; }
+
+        function solveRate(P, M, n) {
+            let low = 0, high = 1.0;
+            for(let i=0; i<60; i++) {
+                let mid = (low + high) / 2;
+                let estimate = (P * mid * Math.pow(1+mid, n)) / (Math.pow(1+mid, n) - 1);
+                if (estimate > M) high = mid; else low = mid;
+            }
+            return low;
+        }
+
+        function calculateAnalysis() {
+            const amount = parseFloat(document.getElementById('loanAmount').value);
+            const start = new Date(document.getElementById('startDate').value);
+            const end = new Date(document.getElementById('endDate').value);
+            const pay = parseFloat(document.getElementById('monthlyPayment').value);
+            const remaining = parseFloat(document.getElementById('remainingDebt').value);
+            const earlyHistory = parseFloat(document.getElementById('earlyPaymentSum').value) || 0;
+
+            if(!amount || !pay || isNaN(start.getTime()) || isNaN(end.getTime())) return;
+
+            const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+            calculatedRate = solveRate(amount, pay, totalMonths);
+            
+            const today = new Date();
+            let monthsPassed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+            if (today.getDate() < 10) monthsPassed--; 
+            monthsPassed = Math.max(0, monthsPassed);
+
+            const principalPaid = amount - remaining;
+            const totalPaidIncludingEarly = (monthsPassed * pay) + earlyHistory;
+            const interestPaid = Math.max(0, totalPaidIncludingEarly - principalPaid);
+            
+            const monthsLeft = Math.max(0, totalMonths - monthsPassed);
+            const futureInterest = (monthsLeft * pay) - remaining;
+            const totalOverpayment = (totalMonths * pay) - amount;
+
+            document.getElementById('res-amount').innerText = format(amount);
+            document.getElementById('res-total-overpayment').innerText = format(totalOverpayment);
+            document.getElementById('res-rate').innerText = (calculatedRate * 12 * 100).toFixed(1) + '%';
+            
+            const yearsTotal = Math.floor(totalMonths/12);
+            const mosTotal = totalMonths%12;
+            document.getElementById('res-term').innerText = currentLang === 'RU' 
+                ? `${yearsTotal > 0 ? yearsTotal + ' г. ' : ''}${mosTotal} мес.` 
+                : `${yearsTotal > 0 ? yearsTotal + ' ж. ' : ''}${mosTotal} ай`;
+
+            const t_ru = `Вы уже сделали ${monthsPassed} платежей`;
+            const t_kz = `Сіз ${monthsPassed} төлем жасадыңыз`;
+            document.getElementById('paymentsCountText').innerText = currentLang === 'RU' ? t_ru : t_kz;
+            
+            document.getElementById('principalPaidText').innerText = format(principalPaid);
+            document.getElementById('interestPaidText').innerText = format(interestPaid);
+            document.getElementById('totalSpentAlready').innerText = format(totalPaidIncludingEarly);
+            document.getElementById('futureInterestText').innerText = format(futureInterest);
+
+            showScreen(3);
+        }
+
+        function calculateFinalResults() {
+            const remaining = parseFloat(document.getElementById('remainingDebt').value);
+            const pay = parseFloat(document.getElementById('monthlyPayment').value);
+            const extra = parseFloat(document.getElementById('strategyAmount').value) || 0;
+            const mode = document.querySelector('input[name="strategy"]:checked').value;
+            const r = calculatedRate;
+
+            if(!remaining || !pay || !r) return;
+
+            const n_curr = Math.log(pay / (pay - remaining * r)) / Math.log(1 + r);
+            const total_interest_curr = (n_curr * pay) - remaining;
+
+            let bal_v1 = remaining - (mode === 'once' ? extra : 0);
+            let pay_v1 = mode === 'monthly' ? (pay + extra) : pay;
+            if (bal_v1 < 0) bal_v1 = 0;
+
+            const n_new_v1 = bal_v1 > 0 ? (Math.log(pay_v1 / (pay_v1 - bal_v1 * r)) / Math.log(1 + r)) : 0;
+            const v1_interest = (n_new_v1 * pay_v1) - bal_v1;
+            const monthsSaved = Math.max(0, Math.round(n_curr - n_new_v1));
+            
+            const years = Math.floor(monthsSaved/12);
+            const mos = monthsSaved%12;
+            document.getElementById('v1-time').innerText = currentLang === 'RU' 
+                ? `${years > 0 ? years + ' г. ' : ''}${mos} мес.` 
+                : `${years > 0 ? years + ' ж. ' : ''}${mos} ай`;
+            document.getElementById('v1-save').innerText = format(total_interest_curr - v1_interest);
+            document.getElementById('v1-total').innerText = format(v1_interest);
+
+            let bal_v2 = remaining - (mode === 'once' ? extra : 0);
+            if (bal_v2 < 0) bal_v2 = 0;
+            
+            let new_pay_v2 = pay;
+            if (mode === 'once') {
+                new_pay_v2 = bal_v2 > 0 ? (bal_v2 * r * Math.pow(1+r, n_curr)) / (Math.pow(1+r, n_curr) - 1) : 0;
+            }
+            
+            const v2_interest = mode === 'once' ? ((n_curr * new_pay_v2) - bal_v2) : v1_interest;
+            document.getElementById('v2-payment').innerText = format(new_pay_v2);
+            document.getElementById('v2-save').innerText = format(total_interest_curr - v2_interest);
+            document.getElementById('v2-total').innerText = format(v2_interest);
+
+            document.getElementById('results-block').classList.remove('hidden');
+            setTimeout(() => document.getElementById('results-block').scrollIntoView({ behavior: 'smooth' }), 100);
+        }
     </script>
 </body>
 </html>
