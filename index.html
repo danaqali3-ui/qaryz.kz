@@ -239,11 +239,15 @@
                             <span class="font-bold text-gray-800" id="v1-time">--</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-emerald-700/70" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
-                            <span class="font-bold text-gray-800" id="v1-save">--</span>
+                            <span class="text-emerald-700/70" data-ru="Плановая переплата:" data-kz="Жоспарлы артық төлем:">Плановая переплата:</span>
+                            <span class="font-bold text-gray-400 line-through" id="v1-old-total">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-emerald-700/70 font-bold" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
+                            <span class="font-black text-emerald-600" id="v1-save">--</span>
                         </div>
                         <div class="pt-3 border-t border-emerald-200/50 flex justify-between items-center">
-                            <span class="text-emerald-700/70" data-ru="Общая переплата:" data-kz="Жалпы артық төлем:">Общая переплата:</span>
+                            <span class="text-emerald-700/70" data-ru="Новая переплата:" data-kz="Жаңа артық төлем:">Новая переплата:</span>
                             <span class="font-bold text-gray-800" id="v1-total">--</span>
                         </div>
                     </div>
@@ -257,11 +261,15 @@
                             <span class="font-bold text-gray-800" id="v2-payment">--</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-400" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
-                            <span class="font-bold text-gray-800" id="v2-save">--</span>
+                            <span class="text-gray-400" data-ru="Плановая переплата:" data-kz="Жоспарлы артық төлем:">Плановая переплата:</span>
+                            <span class="font-bold text-gray-400 line-through" id="v2-old-total">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 font-bold" data-ru="Экономия на %:" data-kz="Пайыз үнемі:">Экономия на %:</span>
+                            <span class="font-black text-blue-600" id="v2-save">--</span>
                         </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
-                            <span class="text-gray-400" data-ru="Общая переплата:" data-kz="Жалпы артық төлем:">Общая переплата:</span>
+                            <span class="text-gray-400" data-ru="Новая переплата:" data-kz="Жаңа артық төлем:">Новая переплата:</span>
                             <span class="font-bold text-gray-800" id="v2-total">--</span>
                         </div>
                     </div>
@@ -269,8 +277,7 @@
 
                 <div class="bg-gray-50 p-4 rounded-xl flex items-start gap-3 mt-6">
                     <span class="text-gray-400">ℹ️</span>
-                    <p class="text-[10px] text-gray-400 leading-relaxed italic" data-ru="Расчёт является ориентировочным, так как банки могут использовать собственные методики перерасчёта, учитывать комиссии, округления и внутренние правила начисления процентов. Итоговые суммы могут отличаться.
-" data-kz="Есептеу болжамды болып табылады, себебі банктер қайта есептеу кезінде өз әдістемелерін, комиссияларды, дөңгелектеуді және пайыздарды есептеудің ішкі ережелерін қолдануы мүмкін. Соңғы сома өзгеше болуы ықтимал.">Расчёт является ориентировочным, так как банки могут использовать собственные методики перерасчёта, учитывать комиссии, округления и внутренние правила начисления процентов. Итоговые суммы могут отличаться.</p>
+                    <p class="text-[10px] text-gray-400 leading-relaxed italic" data-ru="Расчёт является ориентировочным. Мы сравниваем переплату по текущему графику с переплатой после внесения средств. Итоговые суммы в банке могут незначительно отличаться из-за правил округления." data-kz="Есептеу болжамды болып табылады. Біз ағымдағы кесте бойынша артық төлемді қаражат енгізілгеннен кейінгі артық төлеммен салыстырамыз.">Расчёт является ориентировочным. Точные цифры уточняйте в отделении или приложении вашего банка.</p>
                 </div>
 
                 <button onclick="location.reload()" class="w-full text-[#7b89ab] text-sm font-bold py-6 flex items-center justify-center gap-2" data-ru="← Сбросить и начать заново" data-kz="← Тастау және қайта бастау">
@@ -288,6 +295,7 @@
     <script>
         let currentLang = 'RU';
         let calculatedRate = 0.15;
+        let globalFutureInterest = 0; // Для синхронизации между экранами
         const state = { hasEarly: false };
 
         function changeLang(lang) {
@@ -317,7 +325,6 @@
         function showScreen(num) {
             document.querySelectorAll('#app > div:not(.flex)').forEach(s => s.classList.add('hidden'));
             document.getElementById(`screen-${num}`).classList.remove('hidden');
-            // Убираем скролл в начало для 4 экрана, чтобы видеть персональный расчет сразу
             if (num !== 4) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -358,7 +365,7 @@
             const interestPaid = Math.max(0, totalPaidIncludingEarly - principalPaid);
             
             const monthsLeft = Math.max(0, totalMonths - monthsPassed);
-            const futureInterest = (monthsLeft * pay) - remaining;
+            globalFutureInterest = (monthsLeft * pay) - remaining;
             const totalOverpayment = (totalMonths * pay) - amount;
 
             document.getElementById('res-amount').innerText = format(amount);
@@ -378,7 +385,7 @@
             document.getElementById('principalPaidText').innerText = format(principalPaid);
             document.getElementById('interestPaidText').innerText = format(interestPaid);
             document.getElementById('totalSpentAlready').innerText = format(totalPaidIncludingEarly);
-            document.getElementById('futureInterestText').innerText = format(futureInterest);
+            document.getElementById('futureInterestText').innerText = format(globalFutureInterest);
 
             showScreen(3);
         }
@@ -392,35 +399,44 @@
 
             if(!remaining || !pay || !r) return;
 
-            const n_curr = Math.log(pay / (pay - remaining * r)) / Math.log(1 + r);
-            const total_interest_curr = (n_curr * pay) - remaining;
+            // Используем сохраненную ранее переплату для прозрачности
+            const total_interest_curr = globalFutureInterest;
 
+            // Вариант 1: Уменьшение срока
             let bal_v1 = remaining - (mode === 'once' ? extra : 0);
             let pay_v1 = mode === 'monthly' ? (pay + extra) : pay;
             if (bal_v1 < 0) bal_v1 = 0;
 
             const n_new_v1 = bal_v1 > 0 ? (Math.log(pay_v1 / (pay_v1 - bal_v1 * r)) / Math.log(1 + r)) : 0;
             const v1_interest = (n_new_v1 * pay_v1) - bal_v1;
-            const monthsSaved = Math.max(0, Math.round(n_curr - n_new_v1));
+            
+            // Расчет месяцев плановых
+            const n_curr_plan = Math.log(pay / (pay - remaining * r)) / Math.log(1 + r);
+            const monthsSaved = Math.max(0, Math.round(n_curr_plan - n_new_v1));
             
             const years = Math.floor(monthsSaved/12);
             const mos = monthsSaved%12;
             document.getElementById('v1-time').innerText = currentLang === 'RU' 
                 ? `${years > 0 ? years + ' г. ' : ''}${mos} мес.` 
                 : `${years > 0 ? years + ' ж. ' : ''}${mos} ай`;
+            
+            document.getElementById('v1-old-total').innerText = format(total_interest_curr);
             document.getElementById('v1-save').innerText = format(total_interest_curr - v1_interest);
             document.getElementById('v1-total').innerText = format(v1_interest);
 
+            // Вариант 2: Уменьшение платежа
             let bal_v2 = remaining - (mode === 'once' ? extra : 0);
             if (bal_v2 < 0) bal_v2 = 0;
             
             let new_pay_v2 = pay;
             if (mode === 'once') {
-                new_pay_v2 = bal_v2 > 0 ? (bal_v2 * r * Math.pow(1+r, n_curr)) / (Math.pow(1+r, n_curr) - 1) : 0;
+                new_pay_v2 = bal_v2 > 0 ? (bal_v2 * r * Math.pow(1+r, n_curr_plan)) / (Math.pow(1+r, n_curr_plan) - 1) : 0;
             }
             
-            const v2_interest = mode === 'once' ? ((n_curr * new_pay_v2) - bal_v2) : v1_interest;
+            const v2_interest = mode === 'once' ? ((n_curr_plan * new_pay_v2) - bal_v2) : v1_interest;
+            
             document.getElementById('v2-payment').innerText = format(new_pay_v2);
+            document.getElementById('v2-old-total').innerText = format(total_interest_curr);
             document.getElementById('v2-save').innerText = format(total_interest_curr - v2_interest);
             document.getElementById('v2-total').innerText = format(v2_interest);
 
